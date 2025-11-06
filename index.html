@@ -1,177 +1,106 @@
-<!-- Pega ESTE fragmento en Wix → Add → Embed → **Embed HTML**  -->
-<!-- Es un <iframe> con srcdoc (todo el HTML dentro), así Wix no bloquea <script> -->
-<div style="width:100%;max-width:1400px;height:560px;margin:0 auto">
-  <iframe title="Mapa sucursales" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
-          style="width:100%;height:100%;border:0;border-radius:22px;box-shadow:0 4px 18px rgba(0,0,0,.06)"
-          srcdoc='<!DOCTYPE html><html lang="es"><head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"/>
-    <style>
-      :root{ --g1:#00B133; --g2:#00A651; --b:#1D398D; --ink:#0a2a1b; --bg:#f2fbf6; --bd:rgba(0,170,40,.25); }
-      html,body{ height:100%; margin:0; background:var(--bg); font-family:Montserrat,system-ui,sans-serif; color:var(--ink) }
-      .wrap{ display:grid; grid-template-columns:minmax(0,380px) minmax(0,1fr); gap:16px; padding:16px; height:100%; box-sizing:border-box }
-      .panel{ background:linear-gradient(145deg,#ffffff,#ecf9f1); border:3px solid var(--bd); border-radius:22px; padding:14px; display:flex; flex-direction:column; overflow:hidden }
-      .panel h2{ margin:0 0 10px; color:var(--g2); font-weight:900; font-size:21px; letter-spacing:.2px }
-      .legend{ font-size:12px; color:#2a5139; opacity:.85; margin-bottom:10px }
-      .srch{ display:flex; gap:8px; margin:6px 0 12px }
-      .srch input{ flex:1; border-radius:14px; border:2px solid var(--bd); padding:10px 12px; font-size:14px; outline:none }
-      .srch button{ border-radius:14px; border:0; padding:10px 14px; background:var(--g1); color:#fff; font-weight:800; cursor:pointer }
-      .list{ flex:1; overflow:auto; min-height:0; display:grid; gap:10px; padding-right:4px }
-      .card{ background:#fff; border:2px solid var(--bd); border-radius:16px; overflow:hidden }
-      .head{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:12px 12px; cursor:pointer }
-      .title{ margin:0; font-size:15px; color:#103623; font-weight:800 }
-      .badge{ display:inline-block; font-size:11px; background:#e7f8ef; border:1.5px solid var(--bd); padding:3px 8px; border-radius:999px; color:#0e3c27; margin-left:6px; font-weight:700 }
-      .meta{ font-size:12px; color:#2d5a3e; margin-top:2px }
-      .goto a{ font-size:12px; text-decoration:none; color:var(--b); font-weight:800 }
-      .extra{ display:none; border-top:2px solid var(--bd); background:#fbfffd; padding:10px 12px }
-      .card.open .extra{ display:block }
-      #map{ height:100%; width:100%; border-radius:22px; border:3px solid var(--bd); background:#eaf6ee; box-sizing:border-box }
-      .leaflet-control-zoom{ display:none !important }
-      @media (max-width:980px){ .wrap{ grid-template-columns:1fr } #map{ height:400px } }
-    </style>
-  </head><body>
-    <div class="wrap">
-      <aside class="panel">
-        <h2>Tiendas y sucursales</h2>
-        <div class="legend">Abre una sucursal para ver detalles. Busca por nombre o ciudad.</div>
-        <div class="srch">
-          <input id="q" placeholder="Buscar (ej. Gravilias, Hatillo, Nosara)…">
-          <button id="go">Buscar</button>
-        </div>
-        <div id="list" class="list" aria-live="polite"></div>
-        <div id="status" style="margin-top:8px;font-size:12px;color:#6b7280"></div>
-      </aside>
-      <main id="map" role="region" aria-label="Mapa de sucursales"></main>
-    </div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mapa de Sucursales</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">
+  <style>
+    html,body{height:100%;margin:0}
+    .wrap{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:12px;height:100%;padding:12px;box-sizing:border-box;background:#f2fbf6;font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;color:#0a2a1b}
+    #panel{border:2px solid rgba(0,170,40,.25);border-radius:16px;background:#fff;display:flex;flex-direction:column;overflow:auto}
+    #panel h1{font-size:18px;margin:12px;color:#00A651}
+    #list{padding:8px;display:grid;gap:8px;overflow:auto}
+    .card{border:1px solid rgba(0,170,40,.25);border-radius:12px;padding:10px}
+    .card h3{margin:0 0 4px 0;font-size:14px}
+    .card small{color:#2d5a3e}
+    #map{width:100%;height:100%;border:2px solid rgba(0,170,40,.25);border-radius:16px;background:#eaf6ee}
+    .leaflet-control-zoom{display:none!important}
+    @media (max-width:900px){.wrap{grid-template-columns:1fr}#map{height:420px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <aside id="panel">
+      <h1>Sucursales</h1>
+      <div id="list" aria-live="polite"></div>
+    </aside>
+    <main id="map" aria-label="Mapa"></main>
+  </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-    (function(){
-      const STORES = [
-        {brand:"El Lagar",name:"Barrio Cuba (100 m sur Liceo del Sur)",city:"San José",url:"https://www.ellagar.com/ECOMMERCE/Locations",lat:9.922967,lng:-84.08824,phone:"+506 2217 9400",hours:"L–V 7:00–17:00; S 7:00–15:00; D 7:30–12:30"},
-        {brand:"Ferrevidtek",name:"Filadelfia (75 m N Gasolinera JSM)",city:"Guanacaste",url:"https://www.todosbiz.com/CR/ferrevidtek-8450-2811",lat:10.473,lng:-85.567,phone:"+506 8450 2811",hours:"L–V 8:00–17:30; S 8:30–15:30; D Cerrado"},
-        {brand:"JR Vargas e Hijos",name:"Frente al Mercado",city:"Atenas, Alajuela",url:"https://www.facebook.com/FerreteriaJRVargas",lat:9.97874,lng:-84.38159,phone:"+506 2446 8585",hours:"L–V 7:00–17:30; S 7:00–16:30; D Cerrado"},
-        {brand:"El Cedral",name:"Santiago de Puriscal (Centro)",city:"Puriscal, San José",url:"https://www.facebook.com/ElCedralCR",lat:9.84748,lng:-84.31361,phone:"+506 2416 6062",hours:"L–V 6:00–18:30; S 6:00–18:00; D Cerrado"},
-        {brand:"Ferretería San Luis",name:"Heredia",city:"Heredia",url:"https://www.facebook.com/ferreteriacomercialsanluis",lat:9.9986,lng:-84.1179,phone:"",hours:""},
-        {brand:"Ferretería La Solución",name:"Santa Rosa de Sto. Domingo",city:"Heredia",url:"https://sites.google.com/view/ferreterialasolucion",lat:10.004,lng:-84.088,phone:"+506 6116 9176",hours:"24 h (según listado)"},
-        {brand:"Ferretería Palmares",name:"Daniel Flores",city:"Pérez Zeledón",url:"https://www.ferreteriapalmares.com/",lat:9.32099,lng:-83.66666,phone:"+506 2771 8043",hours:"L–V 7:00–18:00; S 7:00–16:00; D Cerrado"},
-        {brand:"Home Depot",name:"Referencia (CR)",city:"Escazú",url:"https://www.homedepot.com/",lat:9.918,lng:-84.139,phone:"",hours:""},
-        {brand:"Grupo Nosara",name:"Materiales Nosara (Centro)",city:"Nosara, Guanacaste",url:"https://gruponosaracr.com/pages/sucursales",lat:9.962866,lng:-85.663816,phone:"+506 4500 1919",hours:"L–S 7:00–17:00 (verificar)"},
-        {brand:"Grupo Nosara",name:"Ferretería Nosara (Arenales)",city:"Nosara, Guanacaste",url:"https://gruponosaracr.com/pages/sucursales",lat:9.973337,lng:-85.645617,phone:"+506 4500 1919",hours:"L–S 7:00–17:00 (verificar)"},
-        {brand:"Grupo Nosara",name:"Sucursal Nicoya Centro",city:"Nicoya, Guanacaste",url:"https://gruponosaracr.com/pages/sucursales",lat:10.1488,lng:-85.452,phone:"+506 4500 1919",hours:"L–S 7:00–17:00 (verificar)"},
-        {brand:"Suministros Venecianos",name:"San José",city:"San José",url:"https://www.veneciacr.com/",lat:9.935,lng:-84.07,phone:"",hours:"L–S 8:00–17:00 (aprox)"},
-        {brand:"Ferconce del Sur",name:"Alajuelita / San Francisco",city:"San José",url:"https://ferconce.com/",lat:9.9145,lng:-84.1018,phone:"+506 2275 2121",hours:"L–S 7:00–17:00; D 8:00–13:00"},
-        {brand:"Preycon CPS",name:"Oficina San Ramón",city:"San Ramón, Alajuela",url:"https://www.bonospreycon.com/",lat:10.087,lng:-84.47,phone:"+506 4035 6922",hours:"L–V 7:00–12:00 y 13:00–16:00"},
-        {brand:"Constructora Cover",name:"Oficina Central – Plaza Pococí #9",city:"Guápiles, Limón",url:"https://www.constructoracover.com/",lat:10.2183,lng:-83.7852,phone:"+506 2100 3723",hours:"L–V 8:30–17:00; S 9:00–13:00"},
-        {brand:"Ferretería Novoa",name:"San Carlos (Quesada)",city:"Quesada, Alajuela",url:"https://www.facebook.com/ferrnovoa",lat:10.3238,lng:-84.427,phone:"+506 2462 6060",hours:"L–V 7:00–17:00; S 7:00–12:00; D Cerrado"},
-        {brand:"Constructora Izquierdo",name:"Tamarindo",city:"Guanacaste",url:"https://www.izquierdo.co.cr/",lat:10.299,lng:-85.841,phone:"+506 2102 8844",hours:"L–V 8:00–17:00 (aprox)"},
-        {brand:"Tectram",name:"San Ramón",city:"Alajuela",url:"https://www.tectramgroup.com/",lat:10.086,lng:-84.47,phone:"+506 4035 2000",hours:"L–V 8:00–17:00 (aprox)"},
-        {brand:"Do It Center",name:"Escazú (referencia)",city:"Escazú",url:"https://grupodoit.com/do-it-center/",lat:9.918,lng:-84.139,phone:"",hours:""},
-        {brand:"Depósito Irazú",name:"Tres Ríos",city:"La Unión, Cartago",url:"https://ferreteriairazu.com/nuestras-tiendas/",lat:9.904,lng:-83.999,phone:"+506 4000 3593",hours:"L–V 7:00–17:30; S 7:00–17:00; D 8:00–12:00"},
-        {brand:"Depósito Irazú",name:"San Sebastián",city:"San José",url:"https://ferreteriairazu.com/nuestras-tiendas/",lat:9.9091,lng:-84.0862,phone:"+506 4000 3593",hours:"L–V 7:00–17:00; S 7:00–17:00; D Cerrado"},
-        {brand:"Depósito Irazú",name:"Coronado",city:"Vázquez de Coronado",url:"https://ferreteriairazu.com/nuestras-tiendas/",lat:9.9693,lng:-84.0058,phone:"+506 4000 3593",hours:"L–V 7:00–17:00; S 7:00–17:00; D 7:30–12:30"},
-        {brand:"Depósito Irazú",name:"Hatillo",city:"San José",url:"https://ferreteriairazu.com/nuestras-tiendas/",lat:9.9142,lng:-84.1012,phone:"+506 4000 3593",hours:"L–V 7:00–17:30; S 7:00–17:00"},
-        {brand:"Depósito Irazú",name:"Heredia",city:"Heredia Centro",url:"https://ferreteriairazu.com/nuestras-tiendas/",lat:9.9981,lng:-84.1198,phone:"+506 4000 3593",hours:"L–V 7:00–17:00; S 7:00–13:00"},
-        {brand:"Gravilias",name:"Aserrí (Sede principal)",city:"Aserrí, San José",url:"https://www.lasgravilias.com/contacto/",lat:9.86,lng:-84.09,phone:"",hours:"L–S 7:00–17:00 (aprox); D Cerrado"},
-        {brand:"Gravilias",name:"San Miguel (Desamparados)",city:"Desamparados, San José",url:"https://www.lasgravilias.com/contacto/",lat:9.894,lng:-84.061,phone:"",hours:"L–S 7:00–17:00 (aprox); D Cerrado"},
-        {brand:"Gravilias",name:"Cartago Oriental",city:"Cartago",url:"https://www.lasgravilias.com/contacto/",lat:9.864,lng:-83.918,phone:"",hours:"L–S 7:00–17:00 (aprox); D Cerrado"},
-        {brand:"Gravilias",name:"Alajuelita",city:"Alajuelita, San José",url:"https://www.lasgravilias.com/contacto/",lat:9.901,lng:-84.1,phone:"",hours:"L–S 7:00–17:00 (aprox); D Cerrado"},
-        {brand:"Gravilias",name:"Tres Ríos",city:"La Unión, Cartago",url:"https://www.lasgravilias.com/contacto/",lat:9.9,lng:-83.99,phone:"",hours:"L–S 7:00–17:00 (aprox); D Cerrado"}
-      ];
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
+  <script>
+  // ⚠️ Si NO ves nada en GitHub Pages, abre la consola (F12) y mira errores de red.
+  // Este archivo es autónomo: no necesita nada más.
 
-      const map = L.map('map', { zoomControl:false, preferCanvas:true }).setView([9.93,-84.08], 12);
-      (function(){
-        const carto = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; OpenStreetMap, &copy; CARTO',maxZoom:19});
-        let fallback=false; carto.on('tileerror', function(){ if(fallback) return; fallback=true; map.removeLayer(carto); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap',maxZoom:19}).addTo(map); });
-        carto.addTo(map);
-      })();
+  // 1) Datos (muestras + todas las tiendas)
+  const STORES = [
+    {brand:"El Lagar",name:"Barrio Cuba (100 m sur Liceo del Sur)",city:"San José",url:"https://www.ellagar.com/ECOMMERCE/Locations",lat:9.922967,lng:-84.08824,phone:"+50622179400",hours:"L–V 7:00–17:00; S 7:00–15:00; D 7:30–12:30"},
+    {brand:"Ferrevidtek",name:"Filadelfia (75 m N Gasolinera JSM)",city:"Guanacaste",url:"https://www.todosbiz.com/CR/ferrevidtek-8450-2811",lat:10.473,lng:-85.567,phone:"+50684502811",hours:"L–V 8:00–17:30; S 8:30–15:30; D Cerrado"},
+    {brand:"JR Vargas e Hijos",name:"Frente al Mercado",city:"Atenas, Alajuela",url:"https://www.facebook.com/FerreteriaJRVargas",lat:9.97874,lng:-84.38159,phone:"+50624468585",hours:"L–V 7:00–17:30; S 7:00–16:30; D Cerrado"},
+    {brand:"El Cedral",name:"Santiago de Puriscal (Centro)",city:"Puriscal, San José",url:"https://www.facebook.com/ElCedralCR",lat:9.84748,lng:-84.31361,phone:"+50624166062",hours:"L–V 6:00–18:30; S 6:00–18:00; D Cerrado"},
+    {brand:"Ferretería San Luis",name:"Heredia",city:"Heredia",url:"https://www.facebook.com/ferreteriacomercialsanluis",lat:9.9986,lng:-84.1179,phone:"",hours:""},
+    {brand:"Ferretería La Solución",name:"Santa Rosa de Sto. Domingo",city:"Heredia",url:"https://sites.google.com/view/ferreterialasolucion",lat:10.004,lng:-84.088,phone:"+50661169176",hours:"24 h"},
+    {brand:"Ferretería Palmares",name:"Daniel Flores",city:"Pérez Zeledón",url:"https://www.ferreteriapalmares.com/",lat:9.32099,lng:-83.66666,phone:"+50627718043",hours:"L–V 7:00–18:00; S 7:00–16:00"},
+    {brand:"Home Depot",name:"Referencia (CR)",city:"Escazú",url:"https://www.homedepot.com/",lat:9.918,lng:-84.139,phone:"",hours:""},
+    {brand:"Grupo Nosara",name:"Materiales Nosara (Centro)",city:"Nosara, Guanacaste",url:"https://gruponosaracr.com/pages/sucursales",lat:9.962866,lng:-85.663816,phone:"+50645001919",hours:"L–S 7:00–17:00"},
+    {brand:"Grupo Nosara",name:"Ferretería Nosara (Arenales)",city:"Nosara, Guanacaste",url:"https://gruponosaracr.com/pages/sucursales",lat:9.973337,lng:-85.645617,phone:"+50645001919",hours:"L–S 7:00–17:00"},
+    {brand:"Grupo Nosara",name:"Sucursal Nicoya Centro",city:"Nicoya, Guanacaste",url:"https://gruponosaracr.com/pages/sucursales",lat:10.1488,lng:-85.452,phone:"+50645001919",hours:"L–S 7:00–17:00"},
+    {brand:"Suministros Venecianos",name:"San José",city:"San José",url:"https://www.veneciacr.com/",lat:9.935,lng:-84.07,phone:"",hours:"L–S 8:00–17:00"},
+    {brand:"Ferconce del Sur",name:"Alajuelita / San Francisco",city:"San José",url:"https://ferconce.com/",lat:9.9145,lng:-84.1018,phone:"+50622752121",hours:"L–S 7:00–17:00"},
+    {brand:"Preycon CPS",name:"Oficina San Ramón",city:"San Ramón, Alajuela",url:"https://www.bonospreycon.com/",lat:10.087,lng:-84.47,phone:"+50640356922",hours:"L–V 7:00–12:00 y 13:00–16:00"},
+    {brand:"Constructora Cover",name:"Oficina Central – Plaza Pococí #9",city:"Guápiles, Limón",url:"https://www.constructoracover.com/",lat:10.2183,lng:-83.7852,phone:"+50621003723",hours:"L–V 8:30–17:00; S 9:00–13:00"},
+    {brand:"Ferretería Novoa",name:"San Carlos (Quesada)",city:"Quesada, Alajuela",url:"https://www.facebook.com/ferrnovoa",lat:10.3238,lng:-84.427,phone:"+50624626060",hours:"L–V 7:00–17:00; S 7:00–12:00"},
+    {brand:"Constructora Izquierdo",name:"Tamarindo",city:"Guanacaste",url:"https://www.izquierdo.co.cr/",lat:10.299,lng:-85.841,phone:"+50621028844",hours:"L–V 8:00–17:00"},
+    {brand:"Tectram",name:"San Ramón",city:"Alajuela",url:"https://www.tectramgroup.com/",lat:10.086,lng:-84.47,phone:"+50640352000",hours:"L–V 8:00–17:00"},
+    {brand:"Do It Center",name:"Escazú (referencia)",city:"Escazú",url:"https://grupodoit.com/do-it-center/",lat:9.918,lng:-84.139,phone:"",hours:""}
+  ];
 
-      const pin = L.icon({ iconUrl:'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/images/marker-icon.png', shadowUrl:'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/images/marker-shadow.png', iconSize:[25,41], iconAnchor:[12,41], popupAnchor:[1,-34] });
-      const listEl = document.getElementById('list');
-      const statusEl = document.getElementById('status');
-      const markers = [];
+  // 2) Mapa simple (OpenStreetMap)
+  const map = L.map('map', { zoomControl:false }).setView([9.93,-84.08], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'&copy; OpenStreetMap', maxZoom:19 }).addTo(map);
 
-      function popupHtml(s){
-        const gmaps = (s.lat&&s.lng)?('https://maps.google.com/?q='+s.lat+','+s.lng):(s.url||'#');
-        const waze  = (s.lat&&s.lng)?('https://waze.com/ul?ll='+s.lat+','+s.lng+'&navigate=yes'):'';
-        const tel   = s.phone?`<div style="margin-top:6px;font-size:12px"><strong>Tel:</strong> <a href="tel:${String(s.phone).replace(/[^+\d]/g,'')}">${s.phone}</a></div>`:'';
-        const hrs   = s.hours?`<div style="margin-top:4px;font-size:12px"><strong>Horario:</strong> ${s.hours}</div>`:'';
-        return `<div style="font-family:Montserrat,sans-serif;min-width:240px">
-          <div style="font-weight:900;color:#00A651;font-size:14px;margin-bottom:4px">${s.brand}</div>
-          <div style="color:#103623;font-weight:800;margin-bottom:2px">${s.name}</div>
-          <div style="color:#2d5a3e;font-size:12px;margin-bottom:4px">${s.city||''}</div>
-          ${tel}${hrs}
-          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-            <a href="${s.url}" target="_blank" rel="noopener" style="display:inline-block;padding:8px 10px;border-radius:10px;background:#00B133;color:#fff;text-decoration:none;font-weight:800">Sitio</a>
-            <a href="${gmaps}" target="_blank" rel="noopener" style="display:inline-block;padding:8px 10px;border-radius:10px;background:#1D398D;color:#fff;text-decoration:none;font-weight:800">Google Maps</a>
-            ${waze?`<a href="${waze}" target="_blank" rel="noopener" style="display:inline-block;padding:8px 10px;border-radius:10px;background:#2ecc71;color:#0a2a1b;text-decoration:none;font-weight:800">Waze</a>`:''}
-          </div>
-        </div>`;
+  // 3) Render lista + pines
+  const list = document.getElementById('list');
+  const markers = [];
+
+  function popup(s){
+    const g = `https://maps.google.com/?q=${s.lat},${s.lng}`;
+    const w = `https://waze.com/ul?ll=${s.lat},${s.lng}&navigate=yes`;
+    return `<strong style="color:#00A651">${s.brand}</strong><br>${s.name}<br><small>${s.city||''}</small><br>`+
+           `${s.phone?`Tel: <a href="tel:${s.phone}">${s.phone}</a><br>`:''}`+
+           `${s.hours?`Horario: ${s.hours}<br>`:''}`+
+           `<div style="margin-top:6px"><a href="${s.url}" target="_blank">Sitio</a> · <a href="${g}" target="_blank">Maps</a> · <a href="${w}" target="_blank">Waze</a></div>`;
+  }
+
+  function render(items){
+    list.innerHTML = '';
+    markers.forEach(m => map.removeLayer(m));
+    markers.length = 0;
+
+    items.forEach(s => {
+      // tarjeta
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `<h3>${s.brand} <small>• ${s.name}</small></h3><small>${s.city||''}</small>`;
+      card.addEventListener('click', ()=>{ if (s.lat && s.lng) { map.flyTo([s.lat,s.lng], 16, {duration:0.6}); const mm = markers.find(x=>x.s===s); if (mm) mm.openPopup(); }});
+      list.appendChild(card);
+
+      // pin
+      if (typeof s.lat==='number' && typeof s.lng==='number'){
+        const m = L.marker([s.lat, s.lng]).addTo(map).bindPopup(popup(s));
+        m.on('click', ()=> map.flyTo([s.lat,s.lng], 16, {duration:0.5}));
+        m.s = s; // referencia
+        markers.push(m);
       }
+    });
 
-      function render(items){
-        listEl.innerHTML='';
-        markers.splice(0).forEach(m=> map.removeLayer(m));
-        items.forEach(s=>{
-          const card = document.createElement('div');
-          card.className='card';
-          card.innerHTML = `
-            <div class="head" tabindex="0" role="button" aria-expanded="false">
-              <div>
-                <div class="title">${s.brand}<span class="badge">${s.name}</span></div>
-                <div class="meta">${s.city||''}</div>
-              </div>
-              <div class="goto"><a href="${s.url}" target="_blank" rel="noopener">Abrir</a></div>
-            </div>
-            <div class="extra">
-              ${s.phone?`<div style="font-size:12px;margin:4px 0"><strong>Tel:</strong> <a href="tel:${String(s.phone).replace(/[^+\d]/g,'')}">${s.phone}</a></div>`:''}
-              ${s.hours?`<div style="font-size:12px;margin:4px 0"><strong>Horario:</strong> ${s.hours}</div>`:''}
-              ${(typeof s.lat==='number' && typeof s.lng==='number')?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
-                <a href="https://maps.google.com/?q=${s.lat},${s.lng}" target="_blank" rel="noopener" style="display:inline-block;padding:8px 10px;border-radius:10px;background:#1D398D;color:#fff;text-decoration:none;font-weight:800">Google Maps</a>
-                <a href="https://waze.com/ul?ll=${s.lat},${s.lng}&navigate=yes" target="_blank" rel="noopener" style="display:inline-block;padding:8px 10px;border-radius:10px;background:#2ecc71;color:#0a2a1b;text-decoration:none;font-weight:800">Waze</a>
-              </div>`:''}
-            </div>`;
+    // encuadre
+    const pts = markers.map(m=> m.getLatLng());
+    if (pts.length) map.fitBounds(L.latLngBounds(pts).pad(0.2));
+  }
 
-          function openCard(){
-            document.querySelectorAll('.card.open').forEach(el=>{ if(el!==card){ el.classList.remove('open'); el.querySelector('.head').setAttribute('aria-expanded','false'); }});
-            card.classList.add('open'); card.querySelector('.head').setAttribute('aria-expanded','true');
-            if (s.lat && s.lng){
-              map.flyTo([s.lat,s.lng],16,{duration:.7});
-              const mm = markers.find(x=> x.getLatLng().lat===s.lat && x.getLatLng().lng===s.lng);
-              if (mm) mm.openPopup();
-            }
-          }
-          const head = card.querySelector('.head');
-          head.addEventListener('click', openCard);
-          head.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openCard(); }});
-          listEl.appendChild(card);
-
-          if (typeof s.lat==='number' && typeof s.lng==='number'){
-            const m = L.marker([s.lat,s.lng]).addTo(map);
-            m.on('click', ()=>{ map.flyTo([s.lat,s.lng],16,{duration:.6}); m.openPopup(); });
-            m.bindPopup(popupHtml(s), {keepInView:true, autoPan:true, offset:[0,-8]});
-            markers.push(m);
-          }
-        });
-        const pts = markers.map(m=> m.getLatLng());
-        if (pts.length) map.fitBounds(L.latLngBounds(pts).pad(0.2));
-        statusEl.textContent = "Mostrando " + items.length + " ubicaciones";
-      }
-
-      function applyFilter(){
-        const v = document.getElementById("q").value.toLowerCase();
-        if(!v) return render(STORES);
-        render(STORES.filter(s => (s.brand+" "+s.name+" "+(s.city||"")).toLowerCase().includes(v)));
-      }
-
-      document.getElementById("go").addEventListener("click", applyFilter);
-      document.getElementById("q").addEventListener("keydown", e=>{ if(e.key==="Enter") applyFilter(); });
-      render(STORES);
-    })();
-    </script>
-  </body></html>'></iframe>
-</div>
-<!-- Si no se ve, Wix está bloqueando srcdoc. En ese caso usa "Embed a Site" con una URL que aloje este HTML. -->
-
+  render(STORES);
+  </script>
+</body>
+</html>
